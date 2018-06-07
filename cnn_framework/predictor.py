@@ -275,7 +275,7 @@ class Predictor(object):
     def save_model(self, loss, inner_val_loss, mean_outer_val_loss, mean_test_loss, fpath):
         save_model(self.model, loss, inner_val_loss, mean_outer_val_loss, mean_test_loss, fpath)
 
-    def predict(self, molecule):
+    def predict(self, molecule, sigma=False):
         molecule_tensor = get_molecule_tensor(molecule,
                                               self.add_extra_atom_attribute,
                                               self.add_extra_bond_attribute,
@@ -285,6 +285,6 @@ class Predictor(object):
             molecule_tensor = pad_molecule_tensor(molecule_tensor, self.padding_final_size)
         molecule_tensor_array = np.array([molecule_tensor])
         if self.prediction_task == "Cp(cal/mol/K)":
-            return self.model.predict(molecule_tensor_array)[0]
+            return self.model.predict(molecule_tensor_array, sigma=sigma)[0]
         else:
-            return self.model.predict(molecule_tensor_array)[0][0]
+            return self.model.predict(molecule_tensor_array, sigma=sigma)[0][0]
