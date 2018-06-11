@@ -3,7 +3,6 @@
 
 from __future__ import print_function
 from cnn_framework.layers import MoleculeConv
-from keras.models import Sequential
 from .uncertainty import RandomMask, EnsembleModel
 from keras.models import Model
 from keras.layers import Input
@@ -63,10 +62,9 @@ def build_model(embedding_size=512, attribute_vector_size=33, depth=5,
 
     if n_model is None:
         model = Model(input=inputs, output=y)
-    elif n_model != 0:
-        model = EnsembleModel(input=inputs, output=y, seeds=np.random.randint(0, 10e8, n_model).tolist())
     else:
-        model = EnsembleModel(input=inputs, output=y)
+        model = EnsembleModel(input=inputs, output=y, seeds=np.random.randint(0, 10e8, n_model).tolist())
+
         
     # Compile
     if optimizer == 'adam':
