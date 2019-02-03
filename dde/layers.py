@@ -10,12 +10,13 @@ import theano
 import theano.tensor as T
 
 
+
 class MoleculeConv(Layer):
     def __init__(self, units, inner_dim, depth=2, init_output='uniform',
                  activation_output='softmax', init_inner='identity',
                  activation_inner='linear', scale_output=0.01, padding=False, 
                  dropout_rate_outer=0.0, dropout_rate_inner=0.0,
-                 padding_final_size=None, **kwargs):
+                 padding_final_size=None, atomic_fp=False, **kwargs):
         if depth < 1:
             quit('Cannot use MoleculeConv with depth zero')
         self.init_output = initializations.get(init_output)
@@ -30,6 +31,7 @@ class MoleculeConv(Layer):
         self.padding_final_size = padding_final_size
         self.dropout_rate_outer = dropout_rate_outer
         self.dropout_rate_inner = dropout_rate_inner
+        self.atomic_fp = atomic_fp
         self.mask_inner = []
         self.mask_output = []
         self.masks_inner_vals = []
@@ -92,10 +94,22 @@ class MoleculeConv(Layer):
                                   self.b_output]
 
     def get_output_shape_for(self, input_shape):
-        return input_shape[0], self.units
+        if self.atomic_fp:
+            return input_shape[0], input_shape[1], self.units
+        else:
+            return input_shape[0], self.units
+
+    def padding_tensor(self, fp_all_depth):
+        padding_result = T.zeros((self.padding_final_size, self.units))    
+        num_non_H_atom = T.shape(fp_all_depth)[0]
+        padding_result = T.set_subtensor(padding_result[:num_non_H_atom], fp_all_depth)
+        return padding_result
 
     def call(self, x, mask=None):
-        (output, updates) = theano.scan(lambda x_one: self.get_output_singlesample(x_one), sequences=x)
+        if self.atomic_fp:
+            (output, updates) = theano.scan(lambda x_one: self.padding_tensor(self.get_output_singlesample(x_one)), sequences=x)
+        else:
+            (output, updates) = theano.scan(lambda x_one: self.get_output_singlesample(x_one), sequences=x)
         return output
 
     def get_output_singlesample(self, M):
@@ -145,8 +159,11 @@ class MoleculeConv(Layer):
 
             presum_fp_new = self.attributes_to_fp_contribution(A_new, depth + 1)
             fp_all_depth = fp_all_depth + presum_fp_new
-
-        fp = K.sum(fp_all_depth, axis=0)  # sum across atom contributions
+        
+        if self.atomic_fp:
+            fp = fp_all_depth
+        else:
+            fp = K.sum(fp_all_depth, axis=0)  # sum across atom contributions
 
         return fp
 

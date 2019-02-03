@@ -25,7 +25,7 @@ def predictor_model(prediction_task="Hf298(kcal/mol)",
                     dropout_rate_inner=0.0, dropout_rate_outer=0.0,
                     dropout_rate_hidden=0.0, dropout_rate_output=0.0,
                     n_model=None,
-                    freeze_mol_conv=False):
+                    freeze_mol_conv=False, atomic_fp=False):
                     
     if dropout_rate_inner==0.0 and dropout_rate_outer==0.0 \
         and dropout_rate_hidden==0.0 and dropout_rate_output==0.0:
@@ -47,7 +47,7 @@ def predictor_model(prediction_task="Hf298(kcal/mol)",
                         dropout_rate_inner, dropout_rate_outer,
                         dropout_rate_hidden, dropout_rate_output,
                         n_model, padding_final_size,
-                        freeze_mol_conv)
+                        freeze_mol_conv, atomic_fp)
     
     predictor.prediction_task = prediction_task
     predictor.model = model
