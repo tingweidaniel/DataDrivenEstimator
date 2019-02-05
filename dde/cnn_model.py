@@ -20,6 +20,7 @@ from keras import initializations
 from keras.utils.visualize_util import plot
 import theano.tensor as T 
 import keras.backend as K
+from keras.regularizers import l1l2
 
 from dde.layers import MoleculeConv
 from dde.uncertainty import RandomMask, EnsembleModel
@@ -35,13 +36,18 @@ def build_model(embedding_size=512, attribute_vector_size=33, depth=5,
                 dropout_rate_inner=0.0, dropout_rate_outer=0.0,
                 dropout_rate_hidden=0.0, dropout_rate_output=0.0,
                 n_model=None, padding_final_size=None,
-                freeze_mol_conv=False, atomic_fp=False):
+                freeze_mol_conv=False, atomic_fp=False, 
+                l1=0.0, l2=0.0):
 
     """
     build generic cnn model that takes molecule tensor and predicts output
     with size of output_size.
     """
-
+    if l1==0.0 and l2==0.0:
+        regularizer = None
+    else:
+        regularizer = l1l2(l1,l2)
+    
     inputs = Input(shape=(None, None, None)) # 3D tensor for each input
 
     x = MoleculeConv(units=embedding_size,
@@ -55,7 +61,8 @@ def build_model(embedding_size=512, attribute_vector_size=33, depth=5,
                      dropout_rate_outer=dropout_rate_outer,
                      padding_final_size=padding_final_size,
                      trainable=not freeze_mol_conv,
-                     atomic_fp=atomic_fp)(inputs)
+                     atomic_fp=atomic_fp,
+                     regularizer=regularizer)(inputs)
 
     logging.info('cnn_model: added MoleculeConv layer ({} -> {})'.format('mol', embedding_size))
     if hidden > 0:
@@ -63,22 +70,26 @@ def build_model(embedding_size=512, attribute_vector_size=33, depth=5,
             if not atomic_fp:
                 if dropout_rate_hidden != 0.0:
                     x = RandomMask(dropout_rate_hidden)(x)
-                x = Dense(hidden, activation=hidden_activation)(x)
+                x = Dense(hidden, activation=hidden_activation,
+                          W_regularizer=regularizer, b_regularizer= regularizer)(x)
             else:
                 if dropout_rate_hidden != 0.0:
                     x = TimeDistributed(RandomMask(dropout_rate_hidden))(x)
-                x = TimeDistributed(Dense(hidden, activation=hidden_activation))(x)                
+                x = TimeDistributed(Dense(hidden, activation=hidden_activation,
+                          W_regularizer=regularizer, b_regularizer= regularizer))(x)                
             
             logging.info('cnn_model: added {} Dense layer (-> {})'.format(hidden_activation, hidden))
     
     if not atomic_fp:
         if dropout_rate_output != 0.0:
             x = RandomMask(dropout_rate_output)(x)
-        y = Dense(output_size, activation=output_activation)(x)
+        y = Dense(output_size, activation=output_activation,
+                  W_regularizer=regularizer, b_regularizer= regularizer)(x)
     else:
         if dropout_rate_output != 0.0:
             x = TimeDistributed(RandomMask(dropout_rate_output))(x)
-        y = TimeDistributed(Dense(output_size, activation=output_activation))(x)   
+        y = TimeDistributed(Dense(output_size, activation=output_activation,
+                                W_regularizer=regularizer, b_regularizer= regularizer))(x)   
         y = Lambda(lambda x: K.sum(x, axis=1), output_shape=lambda s: (s[0], s[2]))(y)     
 
     logging.info('cnn_model: added {} Dense layer (-> {})'.format(output_activation, output_size))

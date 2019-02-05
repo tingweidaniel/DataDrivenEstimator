@@ -16,7 +16,8 @@ class MoleculeConv(Layer):
                  activation_output='softmax', init_inner='identity',
                  activation_inner='linear', scale_output=0.01, padding=False, 
                  dropout_rate_outer=0.0, dropout_rate_inner=0.0,
-                 padding_final_size=None, atomic_fp=False, **kwargs):
+                 padding_final_size=None, atomic_fp=False, regularizer=None, 
+                 **kwargs):
         if depth < 1:
             quit('Cannot use MoleculeConv with depth zero')
         self.init_output = initializations.get(init_output)
@@ -36,6 +37,7 @@ class MoleculeConv(Layer):
         self.mask_output = []
         self.masks_inner_vals = []
         self.masks_output_vals = []
+        self.regularizer = regularizer
 
         self.initial_weights = None
         self.input_dim = 4  # each entry is a 3D N_atom x N_atom x N_feature tensor
@@ -92,6 +94,9 @@ class MoleculeConv(Layer):
                                   self.b_inner,
                                   self.W_output,
                                   self.b_output]
+        if self.regularizer is not None:
+            for w in self.trainable_weights:
+                self.add_loss(self.regularizer(w))
 
     def get_output_shape_for(self, input_shape):
         if self.atomic_fp:
@@ -203,6 +208,7 @@ class MoleculeConv(Layer):
                   'depth' : self.depth,
                   'dropout_rate_inner': self.dropout_rate_inner,
                   'dropout_rate_outer': self.dropout_rate_outer,
-                  'atomic_fp': self.atomic_fp}
+                  'atomic_fp': self.atomic_fp,
+                  'regularizer': self.regularizer.get_config() if self.regularizer else None}
         base_config = super(MoleculeConv, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
