@@ -202,6 +202,7 @@ class MoleculeConv(Layer):
                   'padding_final_size': self.padding_final_size,
                   'depth' : self.depth,
                   'dropout_rate_inner': self.dropout_rate_inner,
-                  'dropout_rate_outer': self.dropout_rate_outer}
+                  'dropout_rate_outer': self.dropout_rate_outer,
+                  'atomic_fp': self.atomic_fp}
         base_config = super(MoleculeConv, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
