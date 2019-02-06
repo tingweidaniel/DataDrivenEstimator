@@ -34,6 +34,7 @@ class Predictor(object):
         self.add_extra_bond_attribute = None
         self.differentiate_atom_type = None
         self.differentiate_bond_type = None
+        self.add_charge_attribute = None
         self.padding = None
         self.padding_final_size = None
         self.prediction_task = None
@@ -88,6 +89,7 @@ class Predictor(object):
                 add_extra_bond_attribute=self.add_extra_bond_attribute,
                 differentiate_atom_type=self.differentiate_atom_type,
                 differentiate_bond_type=self.differentiate_bond_type,
+                add_charge_attribute=self.add_charge_attribute,
                 padding=self.padding,
                 padding_final_size=self.padding_final_size,
                 save_tensors_dir=self.save_tensors_dir,
@@ -99,6 +101,7 @@ class Predictor(object):
                 add_extra_bond_attribute=self.add_extra_bond_attribute,
                 differentiate_atom_type=self.differentiate_atom_type,
                 differentiate_bond_type=self.differentiate_bond_type,
+                add_charge_attribute=self.add_charge_attribute,
                 padding=self.padding,
                 padding_final_size=self.padding_final_size,
                 prediction_task=self.prediction_task,
@@ -217,6 +220,7 @@ class Predictor(object):
                 add_extra_bond_attribute=self.add_extra_bond_attribute,
                 differentiate_atom_type=self.differentiate_atom_type,
                 differentiate_bond_type=self.differentiate_bond_type,
+                add_charge_attribute=self.add_charge_attribute,
                 padding=self.padding,
                 padding_final_size=self.padding_final_size,
                 save_tensors_dir=self.save_tensors_dir,
@@ -230,6 +234,7 @@ class Predictor(object):
                 add_extra_bond_attribute=self.add_extra_bond_attribute,
                 differentiate_atom_type=self.differentiate_atom_type,
                 differentiate_bond_type=self.differentiate_bond_type,
+                add_charge_attribute=self.add_charge_attribute,
                 padding=self.padding,
                 padding_final_size=self.padding_final_size,
                 prediction_task=self.prediction_task,
@@ -305,6 +310,7 @@ class Predictor(object):
                 add_extra_bond_attribute=self.add_extra_bond_attribute,
                 differentiate_atom_type=self.differentiate_atom_type,
                 differentiate_bond_type=self.differentiate_bond_type,
+                add_charge_attribute=self.add_charge_attribute,
                 padding=self.padding,
                 padding_final_size=self.padding_final_size,
                 save_tensors_dir=self.save_tensors_dir,
@@ -316,6 +322,7 @@ class Predictor(object):
                 add_extra_bond_attribute=self.add_extra_bond_attribute,
                 differentiate_atom_type=self.differentiate_atom_type,
                 differentiate_bond_type=self.differentiate_bond_type,
+                add_charge_attribute=self.add_charge_attribute,
                 padding=self.padding,
                 padding_final_size=self.padding_final_size,
                 prediction_task=self.prediction_task,
@@ -447,7 +454,8 @@ class Predictor(object):
                                                   self.add_extra_atom_attribute,
                                                   self.add_extra_bond_attribute,
                                                   self.differentiate_atom_type,
-                                                  self.differentiate_bond_type)
+                                                  self.differentiate_bond_type,
+                                                  self.add_charge_attribute)
             if self.padding:
                 molecule_tensor = pad_molecule_tensor(molecule_tensor, self.padding_final_size)
         molecule_tensor_array = np.array([molecule_tensor])

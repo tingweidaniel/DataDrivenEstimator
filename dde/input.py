@@ -15,6 +15,7 @@ def predictor_model(prediction_task="Hf298(kcal/mol)",
                     add_extra_atom_attribute=True, add_extra_bond_attribute=True,
                     differentiate_atom_type=True,
                     differentiate_bond_type=True,
+                    add_charge_attribute=True,
                     scale_output=0.05, 
                     padding=False, padding_final_size=20,
                     mol_conv_inner_activation='tanh',
@@ -36,7 +37,8 @@ def predictor_model(prediction_task="Hf298(kcal/mol)",
         attribute_vector_size = get_attribute_vector_size(add_extra_atom_attribute, 
                                                           add_extra_bond_attribute,
                                                           differentiate_atom_type,
-                                                          differentiate_bond_type)
+                                                          differentiate_bond_type,
+                                                          add_charge_attribute)
     
     model = build_model(embedding_size, attribute_vector_size, depth,
                         scale_output, padding,
@@ -57,6 +59,7 @@ def predictor_model(prediction_task="Hf298(kcal/mol)",
     predictor.add_extra_bond_attribute = add_extra_bond_attribute
     predictor.differentiate_bond_type = differentiate_bond_type
     predictor.differentiate_atom_type = differentiate_atom_type
+    predictor.add_charge_attribute = add_charge_attribute
     predictor.padding = padding
     predictor.padding_final_size = padding_final_size
 

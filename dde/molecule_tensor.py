@@ -22,6 +22,7 @@ def get_molecule_tensor(molecule,
                         add_extra_bond_attribute=True,
                         differentiate_atom_type=True,
                         differentiate_bond_type=True,
+                        add_charge_attribute=True,
                         padding=False,
                         padding_final_size=20):
     """
@@ -35,7 +36,8 @@ def get_molecule_tensor(molecule,
     atom_attributes_dict = get_atom_attributes(molecule,
                                                non_H_atoms,
                                                add_extra_atom_attribute,
-                                               differentiate_atom_type)
+                                               differentiate_atom_type,
+                                               add_charge_attribute)
     bond_attributes_dict = get_bond_attributes(molecule,
                                                non_H_atoms,
                                                add_extra_bond_attribute,
@@ -64,7 +66,8 @@ def get_molecule_tensor(molecule,
 def get_attribute_vector_size(add_extra_atom_attribute=True, 
                               add_extra_bond_attribute=True,
                               differentiate_atom_type=True,
-                              differentiate_bond_type=True):
+                              differentiate_bond_type=True,
+                              add_charge_attribute=True):
     """
     This method examines current feature engineering setup
     returns attibute vector size on the fly using an example molecule
@@ -77,7 +80,8 @@ def get_attribute_vector_size(add_extra_atom_attribute=True,
     atom_attributes_dict = get_atom_attributes(molecule,
                                                non_H_atoms,
                                                add_extra_atom_attribute,
-                                               differentiate_atom_type)
+                                               differentiate_atom_type,
+                                               add_charge_attribute)
     bond_attributes_dict = get_bond_attributes(molecule,
                                                non_H_atoms,
                                                add_extra_bond_attribute,
@@ -92,7 +96,8 @@ def get_attribute_vector_size(add_extra_atom_attribute=True,
 
 def get_atom_attributes(molecule, non_H_atoms, 
                         add_extra_attribute=True,
-                        differentiate_atom_type=True):
+                        differentiate_atom_type=True,
+                        add_charge_attribute=True):
     """
     This method takes a molecule with hydrogen pre-removed and returns a dict
     with non-H atom as key, atom attributes as value
@@ -117,8 +122,9 @@ def get_atom_attributes(molecule, non_H_atoms,
             [0, 1, 2, 3, 4]
         )
         # charge
-        atom.updateCharge()
-        attributes.append(atom.charge)
+        if add_charge_attribute:
+            atom.updateCharge()
+            attributes.append(atom.charge)
 
         # in ring
         attributes.append(molecule.isVertexInCycle(atom))
