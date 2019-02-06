@@ -37,7 +37,7 @@ def build_model(embedding_size=512, attribute_vector_size=33, depth=5,
                 dropout_rate_hidden=0.0, dropout_rate_output=0.0,
                 n_model=None, padding_final_size=None,
                 freeze_mol_conv=False, atomic_fp=False, 
-                l1=0.0, l2=0.0, fp_all_depth_sum=True):
+                l1=0.0, l2=0.0, fp_all_depth_sum=True, use_bias=True):
 
     """
     build generic cnn model that takes molecule tensor and predicts output
@@ -71,12 +71,12 @@ def build_model(embedding_size=512, attribute_vector_size=33, depth=5,
             if not atomic_fp:
                 if dropout_rate_hidden != 0.0:
                     x = RandomMask(dropout_rate_hidden)(x)
-                x = Dense(hidden, activation=hidden_activation,
+                x = Dense(hidden, bias=use_bias, activation=hidden_activation,
                           W_regularizer=regularizer, b_regularizer= regularizer)(x)
             else:
                 if dropout_rate_hidden != 0.0:
                     x = TimeDistributed(RandomMask(dropout_rate_hidden))(x)
-                x = TimeDistributed(Dense(hidden, activation=hidden_activation,
+                x = TimeDistributed(Dense(hidden, bias=use_bias, activation=hidden_activation,
                           W_regularizer=regularizer, b_regularizer= regularizer))(x)                
             
             logging.info('cnn_model: added {} Dense layer (-> {})'.format(hidden_activation, hidden))
@@ -84,12 +84,12 @@ def build_model(embedding_size=512, attribute_vector_size=33, depth=5,
     if not atomic_fp:
         if dropout_rate_output != 0.0:
             x = RandomMask(dropout_rate_output)(x)
-        y = Dense(output_size, activation=output_activation,
+        y = Dense(output_size, bias=use_bias, activation=output_activation,
                   W_regularizer=regularizer, b_regularizer= regularizer)(x)
     else:
         if dropout_rate_output != 0.0:
             x = TimeDistributed(RandomMask(dropout_rate_output))(x)
-        y = TimeDistributed(Dense(output_size, activation=output_activation,
+        y = TimeDistributed(Dense(output_size, bias=use_bias, activation=output_activation,
                                 W_regularizer=regularizer, b_regularizer= regularizer))(x)   
         y = Lambda(lambda x: K.sum(x, axis=1), output_shape=lambda s: (s[0], s[2]))(y)     
 
