@@ -17,7 +17,7 @@ class MoleculeConv(Layer):
                  activation_inner='linear', scale_output=0.01, padding=False, 
                  dropout_rate_outer=0.0, dropout_rate_inner=0.0,
                  padding_final_size=None, atomic_fp=False, regularizer=None, 
-                 **kwargs):
+                 fp_all_depth_sum = True, **kwargs):
         if depth < 1:
             quit('Cannot use MoleculeConv with depth zero')
         self.init_output = initializations.get(init_output)
@@ -38,10 +38,11 @@ class MoleculeConv(Layer):
         self.masks_inner_vals = []
         self.masks_output_vals = []
         self.regularizer = regularizer
+        self.fp_all_depth_sum = fp_all_depth_sum
 
         self.initial_weights = None
         self.input_dim = 4  # each entry is a 3D N_atom x N_atom x N_feature tensor
-
+        
         super(MoleculeConv, self).__init__(**kwargs)
 
     def gen_masks(self, rngs):
@@ -98,15 +99,20 @@ class MoleculeConv(Layer):
             for w in self.trainable_weights:
                 self.add_loss(self.regularizer(w))
 
-    def get_output_shape_for(self, input_shape):
+    def get_output_shape_for(self, input_shape):            
         if self.atomic_fp:
             return input_shape[0], input_shape[1], self.units
         else:
             return input_shape[0], self.units
 
     def padding_tensor(self, fp_all_depth):
+        
         padding_result = T.zeros((self.padding_final_size, self.units))    
         num_non_H_atom = T.shape(fp_all_depth)[0]
+        # print np.shape(padding_result.eval())
+        # print num_non_H_atom
+        # print np.shape(K.eval(fp_all_depth))
+        
         padding_result = T.set_subtensor(padding_result[:num_non_H_atom], fp_all_depth)
         return padding_result
 
@@ -163,7 +169,11 @@ class MoleculeConv(Layer):
             A_new = self.activation_inner(temp)
 
             presum_fp_new = self.attributes_to_fp_contribution(A_new, depth + 1)
-            fp_all_depth = fp_all_depth + presum_fp_new
+            
+            if self.fp_all_depth_sum == True:
+                fp_all_depth = fp_all_depth + presum_fp_new
+            else:
+                fp_all_depth = K.concatenate([fp_all_depth, presum_fp_new], axis=0)
         
         if self.atomic_fp:
             fp = fp_all_depth
