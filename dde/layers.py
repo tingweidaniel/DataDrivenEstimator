@@ -134,6 +134,7 @@ class MoleculeConv(Layer):
             rowsum = M.sum(axis=0)
             trim = rowsum[:, -1]
             trim_to = T.eq(trim, 0).nonzero()[0][0]  # first index with no bonds
+            trim_to = T.switch(T.eq(trim_to, 0), 1, trim_to)  # consider the condition of molecules with one heavy atom & no bonds
             M = M[:trim_to, :trim_to, :]  # reduced graph
 
         # dimshuffle to get diagonal items to
